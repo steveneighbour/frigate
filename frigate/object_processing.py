@@ -12,6 +12,7 @@ import SharedArray as sa
 import matplotlib.pyplot as plt
 from frigate.util import draw_box_with_label
 from frigate.edgetpu import load_labels
+import requests
 
 PATH_TO_LABELS = '/labelmap.txt'
 
@@ -135,7 +136,40 @@ class TrackedObjectProcessor(threading.Thread):
                     if ret:
                         jpg_bytes = jpg.tobytes()
                         self.client.publish(f"{self.topic_prefix}/{camera}/{obj_name}/snapshot", jpg_bytes, retain=True)
-
+                    #Save a copy of the best image to local disk
+                    today = datetime.datetime.now()
+                    year = today.strftime("%Y")
+                    month = today.strftime("%m")
+                    day = today.strftime("%d")
+                    time = today.strftime("%H%M%S")
+                    output = "/storage/"  + year + "/" + month + "/" + day + "/" + obj['name'] + "/"
+                    pathlib.Path(output).mkdir(parents=True, exist_ok=True)
+                    cv2.imwrite(output + time + ".png", best_frame)
+                    cv2.imwrite("/storage/" + obj_name + ".png", best_frame)
+                    if self.camera.name == "front":
+                        camera_port = 8084
+                    elif self.camera.name == "backdeck":
+                        camera_port = 8082
+                    elif self.camera.name == "backyard":
+                        camera_port = 8081
+                    elif self.camera.name == "frontdoor":
+                        camera_port = 8089
+                    elif self.camera.name == "laundry":
+                        camera_port = 8087
+                    elif self.camera.name == "laundryback":
+                        camera_port = 8083
+                    elif self.camera.name == "underhouse":
+                        camera_port = 8085
+                    else:
+                        print("Unable to convert camera name to port for:" + self.camera.name)
+                    print("Object Detected - Type:{} with Confidence:{}% on Camera:{}".format(obj_name,int(obj['score']*100),self.camera.name))
+                    # Notify Motion that an event has started
+                    req_url = "http://192.168.11.144:7999/" + str(camera_port) + "/action/eventstart"
+                    print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
+                    response = requests.get(req_url)
+                    print("Start Recording Request sent to: " + self.camera.name)
+                    dis_url = "http://192.168.11.144:7999/" + str(camera_port) + "/detection/pause"
+                    response = requests.get(dis_url)
             # expire any objects that are ON and no longer detected
             expired_objects = [obj_name for obj_name, status in current_object_status.items() if status == 'ON' and not obj_name in obj_counter]
             for obj_name in expired_objects:
@@ -147,3 +181,24 @@ class TrackedObjectProcessor(threading.Thread):
                 if ret:
                     jpg_bytes = jpg.tobytes()
                     self.client.publish(f"{self.topic_prefix}/{camera}/{obj_name}/snapshot", jpg_bytes, retain=True)
+                    if self.camera.name == "front":
+                        camera_port = 8084
+                    elif self.camera.name == "backdeck":
+                        camera_port = 8082
+                    elif self.camera.name == "backyard":
+                        camera_port = 8081
+                    elif self.camera.name == "frontdoor":
+                        camera_port = 8089
+                    elif self.camera.name == "laundry":
+                        camera_port = 8087
+                    elif self.camera.name == "laundryback":
+                        camera_port = 8083
+                    elif self.camera.name == "underhouse":
+                        camera_port = 8085
+                    else:
+                        print("Unable to convert camera name to port for:" + self.camera.name)
+                    # Notify Motion that an even has ended
+                    req_url = "http://192.168.11.144:7999/" + str(camera_port) + "/action/eventend"
+                    print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
+                    response = requests.get(req_url)
+                    print("End Recording Request successfully sent to: " + self.camera.name)                        
