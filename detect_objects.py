@@ -118,7 +118,7 @@ def main():
     client.loop_start()
 
     # start plasma store
-    plasma_cmd = ['plasma_store', '-m', '400000000', '-s', '/tmp/plasma']
+    plasma_cmd = ['plasma_store', '-m', '1400000000', '-s', '/tmp/plasma']
     plasma_process = sp.Popen(plasma_cmd, stdout=sp.DEVNULL)
     time.sleep(1)
     rc = plasma_process.poll()
