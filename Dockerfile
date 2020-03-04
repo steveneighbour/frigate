@@ -3,11 +3,14 @@ LABEL maintainer "blakeb@blakeshome.com"
 
 ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
-RUN apt -qq update && apt -qq install --no-install-recommends -y \
+RUN export DEBIAN_FRONTEND=noninteractive; \
+    export DEBCONF_NONINTERACTIVE_SEEN=true; \
+    apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
+    tzdata \
     software-properties-common \
     # apt-transport-https ca-certificates \
     build-essential \
-    gnupg wget unzip \
+    gnupg wget curl unzip \
     # libcap-dev \
     && add-apt-repository ppa:deadsnakes/ppa -y \
     && apt -qq install --no-install-recommends -y \
@@ -31,12 +34,13 @@ RUN apt -qq update && apt -qq install --no-install-recommends -y \
         PyYAML \
         matplotlib \
         pyarrow \
+        requests \
     && echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" > /etc/apt/sources.list.d/coral-edgetpu.list \
     && wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && apt -qq update \
-    && echo "libedgetpu1-max libedgetpu/accepted-eula boolean true" | debconf-set-selections \
+    && echo "libedgetpu1-std libedgetpu/accepted-eula boolean true" | debconf-set-selections \
     && apt -qq install --no-install-recommends -y \
-        libedgetpu1-max \
+        libedgetpu1-std \
     ## Tensorflow lite (python 3.7 only)
     && wget -q https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl \
     && python3.7 -m pip install tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl \
