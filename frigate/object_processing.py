@@ -142,7 +142,7 @@ class TrackedObjectProcessor(threading.Thread):
                     month = today.strftime("%m")
                     day = today.strftime("%d")
                     time = today.strftime("%H%M%S")
-                    output = "/storage/"  + year + "/" + month + "/" + day + "/" + obj['name'] + "/"
+                    output = "/storage/"  + year + "/" + month + "/" + day + "/" + obj_name + "/"
                     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
                     cv2.imwrite(output + time + ".png", best_frame)
                     cv2.imwrite("/storage/" + obj_name + ".png", best_frame)
