@@ -28,7 +28,6 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         imutils \
         scipy \
     && python3.7 -m pip install -U \
-        SharedArray \
         Flask \
         paho-mqtt \
         PyYAML \
