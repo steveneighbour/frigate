@@ -12,6 +12,7 @@ import pyarrow.plasma as plasma
 import matplotlib.pyplot as plt
 from frigate.util import draw_box_with_label, PlasmaManager
 from frigate.edgetpu import load_labels
+import requests
 
 PATH_TO_LABELS = '/labelmap.txt'
 
