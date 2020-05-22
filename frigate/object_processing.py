@@ -173,7 +173,7 @@ class TrackedObjectProcessor(threading.Thread):
             expired_objects = [obj_name for obj_name, status in current_object_status.items() if status == 'ON' and not obj_name in obj_counter]
             for obj_name in expired_objects:
                 #Wait a little before expiring objects
-                time.sleep(30)                        
+                time.sleep(30)
                 current_object_status[obj_name] = 'OFF'
                 self.client.publish(f"{self.topic_prefix}/{camera}/{obj_name}", 'OFF', retain=False)
                 # send updated snapshot over mqtt
