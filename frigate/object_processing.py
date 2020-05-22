@@ -199,7 +199,7 @@ class TrackedObjectProcessor(threading.Thread):
                 # Notify Motion that an even has ended
                 req_url = "http://192.168.11.144:7999/" + str(camera_port) + "/action/eventend"
                 print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
-                #Wait a little before expiring objects
-                time.sleep(15)
+                # wait a bit before checking
+                time.sleep(10)
                 response = requests.get(req_url)
                 print("End Recording Request successfully sent to: " + camera)
