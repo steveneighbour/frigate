@@ -140,10 +140,10 @@ class TrackedObjectProcessor(threading.Thread):
                     year = today.strftime("%Y")
                     month = today.strftime("%m")
                     day = today.strftime("%d")
-                    time = today.strftime("%H%M%S")
+                    minsec = today.strftime("%H%M%S")
                     output = "/storage/"  + year + "/" + month + "/" + day + "/" + obj_name + "/"
                     pathlib.Path(output).mkdir(parents=True, exist_ok=True)
-                    cv2.imwrite(output + time + ".png", best_frame)
+                    cv2.imwrite(output + minsec + ".png", best_frame)
                     cv2.imwrite("/storage/" + obj_name + ".png", best_frame)
                     if camera == "front":
                         camera_port = 8084
@@ -198,8 +198,8 @@ class TrackedObjectProcessor(threading.Thread):
                     print("Unable to convert camera name to port for:" + camera)
                 # Notify Motion that an even has ended
                 req_url = "http://192.168.11.144:7999/" + str(camera_port) + "/action/eventend"
-                print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
-                # wait a bit before checking
-                time.sleep(10)
+                #print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
+                # wait a bit before ending, to pad the video further
+                time.sleep(15)
                 response = requests.get(req_url)
                 print("End Recording Request successfully sent to: " + camera)
