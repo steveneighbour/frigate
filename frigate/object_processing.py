@@ -172,8 +172,6 @@ class TrackedObjectProcessor(threading.Thread):
             # expire any objects that are ON and no longer detected
             expired_objects = [obj_name for obj_name, status in current_object_status.items() if status == 'ON' and not obj_name in obj_counter]
             for obj_name in expired_objects:
-                #Wait a little before expiring objects
-                time.sleep(30)
                 current_object_status[obj_name] = 'OFF'
                 self.client.publish(f"{self.topic_prefix}/{camera}/{obj_name}", 'OFF', retain=False)
                 # send updated snapshot over mqtt
@@ -201,5 +199,7 @@ class TrackedObjectProcessor(threading.Thread):
                 # Notify Motion that an even has ended
                 req_url = "http://192.168.11.144:7999/" + str(camera_port) + "/action/eventend"
                 print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
+                #Wait a little before expiring objects
+                time.sleep(15)
                 response = requests.get(req_url)
                 print("End Recording Request successfully sent to: " + camera)
