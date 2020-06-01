@@ -200,6 +200,6 @@ class TrackedObjectProcessor(threading.Thread):
                 req_url = "http://192.168.11.144:7999/" + str(camera_port) + "/action/eventend"
                 #print("DEBUG: Parsed Motion API Url is: " + str(req_url) )
                 # wait a bit before ending, to pad the video further
-                time.sleep(15)
+                time.sleep(60)
                 response = requests.get(req_url)
                 print("End Recording Request successfully sent to: " + camera)
