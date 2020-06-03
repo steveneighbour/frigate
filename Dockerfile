@@ -1,4 +1,5 @@
-FROM ubuntu:18.04
+#FROM ubuntu:18.04
+FROM jrottenberg/ffmpeg:4.1-vaapi as ffmpeg
 LABEL maintainer "blakeb@blakeshome.com"
 
 ENV DEBIAN_FRONTEND=noninteractive
