@@ -38,9 +38,9 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" > /etc/apt/sources.list.d/coral-edgetpu.list \
     && wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && apt -qq update \
-    && echo "libedgetpu1-std libedgetpu/accepted-eula boolean true" | debconf-set-selections \
+    && echo "libedgetpu1-max libedgetpu/accepted-eula boolean true" | debconf-set-selections \
     && apt -qq install --no-install-recommends -y \
-        libedgetpu1-std \
+        libedgetpu1-max \
     ## Tensorflow lite (python 3.7 only)
     && wget -q https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl \
     && python3.7 -m pip install tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl \
