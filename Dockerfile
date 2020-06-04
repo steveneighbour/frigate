@@ -1,5 +1,6 @@
 #FROM ubuntu:18.04
-FROM jrottenberg/ffmpeg:4.0-vaapi
+FROM jrottenberg/ffmpeg:4.1-vaapi as ffmpeg
+FROM ubuntu:18.04
 LABEL maintainer "blakeb@blakeshome.com"
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,6 +50,8 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && rm -rf /var/lib/apt/lists/* \
     && (apt-get autoremove -y; apt-get autoclean -y)
 
+COPY --from=ffmpeg /usr/local /usr/local
+
 # get model and labels
 RUN wget -q https://github.com/google-coral/edgetpu/raw/master/test_data/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite -O /edgetpu_model.tflite --trust-server-names
 RUN wget -q https://dl.google.com/coral/canned_models/coco_labels.txt -O /labelmap.txt --trust-server-names
@@ -62,4 +65,4 @@ ADD frigate frigate/
 COPY detect_objects.py .
 COPY benchmark.py .
 
-CMD ["python3.7", "-u", "detect_objects.py"]
+ENTRYPOINT ["python3.7", "-u", "detect_objects.py"]
