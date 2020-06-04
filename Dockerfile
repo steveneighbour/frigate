@@ -1,5 +1,5 @@
 #FROM ubuntu:18.04
-FROM jrottenberg/ffmpeg:4.1-vaapi as ffmpeg
+FROM jrottenberg/ffmpeg:4.0-vaapi as ffmpeg
 FROM ubuntu:18.04
 LABEL maintainer "blakeb@blakeshome.com"
 
@@ -21,7 +21,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         python3.7 \
         python3.7-dev \
         python3-pip \
-        #ffmpeg \
+        ffmpeg \
         # VAAPI drivers for Intel hardware accel
         #libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
