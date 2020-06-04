@@ -23,7 +23,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         python3-pip \
         ffmpeg \
         # VAAPI drivers for Intel hardware accel
-        #libva-drm2 libva2 i965-va-driver vainfo \
+        libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
     && python3.7 -m pip install -U \
         opencv-python-headless \
