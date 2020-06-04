@@ -3,8 +3,6 @@ FROM jrottenberg/ffmpeg:4.0-vaapi as ffmpeg
 FROM ubuntu:18.04
 LABEL maintainer "blakeb@blakeshome.com"
 
-COPY --from=ffmpeg /usr/local /usr/local
-
 ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
 RUN export DEBIAN_FRONTEND=noninteractive; \
@@ -21,9 +19,9 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         python3.7 \
         python3.7-dev \
         python3-pip \
-        ffmpeg \
+        #ffmpeg \
         # VAAPI drivers for Intel hardware accel
-        libva-drm2 libva2 i965-va-driver vainfo \
+        #libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
     && python3.7 -m pip install -U \
         opencv-python-headless \
@@ -51,6 +49,8 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && rm tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl \
     && rm -rf /var/lib/apt/lists/* \
     && (apt-get autoremove -y; apt-get autoclean -y)
+
+COPY --from=ffmpeg /usr/local /usr/local
 
 # get model and labels
 RUN wget -q https://github.com/google-coral/edgetpu/raw/master/test_data/mobilenet_ssd_v2_coco_quant_postprocess_edgetpu.tflite -O /edgetpu_model.tflite --trust-server-names
