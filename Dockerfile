@@ -18,7 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
     #&& add-apt-repository ppa:savoury1/graphics -y \
     #&& add-apt-repository ppa:savoury1/multimedia -y \
-    && apt-get -qq update && apt-get -fyqq install \
+    && apt-get autoremove -y && apt-get -qq update && apt-get -fyqq install \
     python3.7 \
     python3.7-dev \
     python3-pip \
