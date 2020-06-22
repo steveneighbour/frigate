@@ -18,7 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
     && add-apt-repository ppa:savoury1/graphics -y \
     && add-apt-repository ppa:savoury1/multimedia -y \
-    && apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" \
+    #&& apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" \
     python3.7 \
     python3.7-dev \
     python3-pip \
