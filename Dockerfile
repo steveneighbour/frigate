@@ -19,7 +19,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && add-apt-repository ppa:savoury1/graphics -y \
     && add-apt-repository ppa:savoury1/multimedia -y \
     && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
-    && apt-get -qq update && apt-get install -f && apt-get -qq upgrade -y && apt-get -yqq install --no-install-recommends \
+    && apt-get install -fy && apt-get -yqq install --no-install-recommends \
     python3.7 \
     python3.7-dev \
     python3-pip \
