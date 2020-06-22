@@ -1,9 +1,9 @@
 #FROM ubuntu:18.04
-FROM jrottenberg/ffmpeg:4.2-vaapi as ffmpeg
+#FROM jrottenberg/ffmpeg:4.2-vaapi as ffmpeg
 FROM ubuntu:18.04
 LABEL maintainer "blakeb@blakeshome.com"
 
-COPY --from=ffmpeg /usr/local /usr/local
+#COPY --from=ffmpeg /usr/local /usr/local
 
 ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
@@ -17,11 +17,14 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     gnupg wget curl unzip \
     # libcap-dev \
     && add-apt-repository ppa:deadsnakes/ppa -y \
+    && add-apt-repository ppa:savoury1/ffmpeg4 -y \
+    && add-apt-repository ppa:savoury1/graphics -y \
+    && add-apt-repository ppa:savoury1/multimedia -y \
     && apt -qq install --no-install-recommends -y \
         python3.7 \
         python3.7-dev \
         python3-pip \
-        #ffmpeg \
+        ffmpeg \
         # VAAPI drivers for Intel hardware accel
         libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
