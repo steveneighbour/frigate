@@ -9,24 +9,20 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
 RUN export DEBIAN_FRONTEND=noninteractive; \
     export DEBCONF_NONINTERACTIVE_SEEN=true; \
-    #apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
-    #tzdata \
-    #software-properties-common \
-    #build-essential \
-    #gnupg wget curl unzip \
-    add-apt-repository ppa:deadsnakes/ppa -y \
-    && add-apt-repository ppa:savoury1/ffmpeg4 -y \
-    && add-apt-repository ppa:savoury1/graphics -y \
-    && add-apt-repository ppa:savoury1/multimedia -y \
-    && apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
-    python3.7 \
-    python3.7-dev \
-    python3-pip \
-    ffmpeg \
+    apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
     tzdata \
     software-properties-common \
     build-essential \
     gnupg wget curl unzip \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && add-apt-repository ppa:savoury1/ffmpeg4 -y \
+    && add-apt-repository ppa:savoury1/graphics -y \
+    && add-apt-repository ppa:savoury1/multimedia -y \
+    && apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" \
+    python3.7 \
+    python3.7-dev \
+    python3-pip \
+    ffmpeg \
     # VAAPI drivers for Intel hardware accel
     libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
