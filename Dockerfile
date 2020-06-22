@@ -15,11 +15,10 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     build-essential \
     gnupg wget curl unzip \
     && add-apt-repository ppa:deadsnakes/ppa -y \
-    #&& apt -qq install --no-install-recommends -y \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
-    && add-apt-repository ppa:savoury1/graphics -y \
-    && add-apt-repository ppa:savoury1/multimedia -y \
-    && apt-get -qq update && apt-get -fqqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
+    #&& add-apt-repository ppa:savoury1/graphics -y \
+    #&& add-apt-repository ppa:savoury1/multimedia -y \
+    && apt-get -qq update && apt-get -fyqq install \
     python3.7 \
     python3.7-dev \
     python3-pip \
