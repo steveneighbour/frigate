@@ -22,7 +22,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     python3.7 \
     python3.7-dev \
     python3-pip \
-    ffmpeg \
+    ffmpeg libavcodec58 libavfilter7 libavformat58 \
     # VAAPI drivers for Intel hardware accel
     libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
