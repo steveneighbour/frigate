@@ -9,14 +9,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
 RUN export DEBIAN_FRONTEND=noninteractive; \
     export DEBCONF_NONINTERACTIVE_SEEN=true; \
-    apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
-    tzdata \
-    software-properties-common \
-    # apt-transport-https ca-certificates \
-    build-essential \
-    gnupg wget curl unzip \
-    # libcap-dev \
-    && add-apt-repository ppa:deadsnakes/ppa -y \
+    #apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
+    #tzdata \
+    #software-properties-common \
+    #build-essential \
+    #gnupg wget curl unzip \
+    add-apt-repository ppa:deadsnakes/ppa -y \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
     && add-apt-repository ppa:savoury1/graphics -y \
     && add-apt-repository ppa:savoury1/multimedia -y \
@@ -25,6 +23,10 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     python3.7-dev \
     python3-pip \
     ffmpeg \
+    tzdata \
+    software-properties-common \
+    build-essential \
+    gnupg wget curl unzip \
     # VAAPI drivers for Intel hardware accel
     libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
