@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
 RUN export DEBIAN_FRONTEND=noninteractive; \
     export DEBCONF_NONINTERACTIVE_SEEN=true; \
-    apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
+    apt-get -qq update && apt-get -fqqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
     tzdata \
     software-properties-common \
     build-essential \
@@ -18,7 +18,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
     #&& add-apt-repository ppa:savoury1/graphics -y \
     #&& add-apt-repository ppa:savoury1/multimedia -y \
-    && apt-get autoremove -y && apt-get -qq update && apt-get -fyqq install \
+    && apt-get autoremove -y && apt-get -qq update && apt install -f  && apt -qq install --no-install-recommends -y \
     python3.7 \
     python3.7-dev \
     python3-pip \
