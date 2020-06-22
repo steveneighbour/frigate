@@ -12,7 +12,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     apt-get -qq update && apt-get -fqqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
     tzdata \
     software-properties-common \
-    build-essential build-dep \
+    build-essential \
     gnupg wget curl unzip \
     && add-apt-repository ppa:deadsnakes/ppa -y \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
