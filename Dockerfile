@@ -15,10 +15,11 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     build-essential \
     gnupg wget curl unzip \
     && add-apt-repository ppa:deadsnakes/ppa -y \
-    && add-apt-repository ppa:savoury1/ffmpeg4 -y \
-    && add-apt-repository ppa:savoury1/graphics -y \
-    && add-apt-repository ppa:savoury1/multimedia -y \
-    && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+    #&& add-apt-repository ppa:savoury1/ffmpeg4 -y \
+    #&& add-apt-repository ppa:savoury1/graphics -y \
+    #&& add-apt-repository ppa:savoury1/multimedia -y \
+    #&& add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+    && add-apt-repository ppa:jonathonf/ffmpeg-4 -y \
     && apt-get install -fy && apt-get -yqq install --no-install-recommends \
     python3.7 \
     python3.7-dev \
