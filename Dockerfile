@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install packages for apt repo
 RUN export DEBIAN_FRONTEND=noninteractive; \
     export DEBCONF_NONINTERACTIVE_SEEN=true; \
-    apt-get -qq update && apt-get -fqqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
+    apt-get -qq update && apt-get -qqy install --option Dpkg::Options::="--force-confnew" --no-install-recommends \
     tzdata \
     software-properties-common \
     build-essential \
@@ -18,11 +18,12 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     && add-apt-repository ppa:savoury1/ffmpeg4 -y \
     && add-apt-repository ppa:savoury1/graphics -y \
     && add-apt-repository ppa:savoury1/multimedia -y \
-    && apt-get -qq update && apt install -f  && apt -qq install -y \
+    && add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+    && apt-get -qq update && apt-get install -f && apt-get -qq upgrade -y && apt-get -yqq install --no-install-recommends \
     python3.7 \
     python3.7-dev \
     python3-pip \
-    ffmpeg libavcodec58 libavfilter7 libavformat58 \
+    ffmpeg \
     # VAAPI drivers for Intel hardware accel
     libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
