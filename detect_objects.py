@@ -23,11 +23,6 @@ from frigate.edgetpu import EdgeTPUProcess
 import beeline
 from beeline.middleware.flask import HoneyMiddleware
     
-beeline.init(writekey='d0cfd03e01d85a4cdf9ceb9af7fbd082', dataset='frigate', service_name='frigate')
-app = Flask(__name__)
-# db_events defaults to True, set to False if not using our db middleware with Flask-SQLAlchemy
-HoneyMiddleware(app, db_events=False)
-    
 FRIGATE_VARS = {k: v for k, v in os.environ.items() if k.startswith('FRIGATE_')}
 
 with open('/config/config.yml') as f:
@@ -151,6 +146,10 @@ class CameraWatchdog(threading.Thread):
 
 def main():
     # connect to mqtt and setup last will
+    beeline.init(writekey='d0cfd03e01d85a4cdf9ceb9af7fbd082', dataset='frigate', service_name='frigate')
+    app = Flask(__name__)
+    # db_events defaults to True, set to False if not using our db middleware with Flask-SQLAlchemy
+    HoneyMiddleware(app, db_events=False)
     def on_connect(client, userdata, flags, rc):
         print("On connect called")
         if rc != 0:
