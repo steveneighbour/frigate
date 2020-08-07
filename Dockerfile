@@ -42,6 +42,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         pyarrow \
         requests \
         pathlib \
+        honeycomb-beeline \
     && echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" > /etc/apt/sources.list.d/coral-edgetpu.list \
     && wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && apt -qq update \
