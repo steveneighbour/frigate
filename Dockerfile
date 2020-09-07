@@ -43,7 +43,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         matplotlib \
         pyarrow \
         requests \
-        pathlib
+        pathlib \
     && echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" > /etc/apt/sources.list.d/coral-edgetpu.list \
     && wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && apt -qq update \
