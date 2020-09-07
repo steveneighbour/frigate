@@ -66,7 +66,40 @@ objects:
     person:
       min_area: 5000
       max_area: 100000
-      threshold: 0.5
+      threshold: 0.8
+
+zones:
+  #################
+  # Name of the zone
+  ################
+  front_steps:
+    front_door:
+      ####################
+      # For each camera, a list of x,y coordinates to define the polygon of the zone. The top 
+      # left corner is 0,0. Can also be a comma separated string of all x,y coordinates combined.
+      # The same zone can exist across multiple cameras if they have overlapping FOVs.
+      # An object is determined to be in the zone based on whether or not the bottom center
+      # of it's bounding box is within the polygon. The polygon must have at least 3 points.
+      # Coordinates can be generated at https://www.image-map.net/
+      ####################
+      coordinates:
+        - 545,1077
+        - 747,939
+        - 788,805
+      ################
+      # Zone level object filters. These are applied in addition to the global and camera filters
+      # and should be more restrictive than the global and camera filters. The global and camera
+      # filters are applied upstream.
+      ################
+      filters:
+        person:
+          min_area: 5000
+          max_area: 100000
+          threshold: 0.8
+  driveway:
+    front_door:
+      coordinates: 545,1077,747,939,788,805
+  yard:
 
 cameras:
   back:
@@ -91,7 +124,9 @@ cameras:
     # width: 720
 
     ################
-    ## Optional mask. Must be the same aspect ratio as your video feed.
+    ## Optional mask. Must be the same aspect ratio as your video feed. Value is either the
+    ## name of a file in the config directory or a base64 encoded bmp image prefixed with
+    ## 'base64,' eg. 'base64,asfasdfasdf....'.
     ## 
     ## The mask works by looking at the bottom center of the bounding box for the detected
     ## person in the image. If that pixel in the mask is a black pixel, it ignores it as a
@@ -111,17 +146,33 @@ cameras:
     take_frame: 1
 
     ################
-    # The expected framerate for the camera. Frigate will try and ensure it maintains this framerate
-    # by dropping frames as necessary. Setting this lower than the actual framerate will allow frigate
-    # to process every frame at the expense of realtime processing.
+    # This will save a clip for each tracked object by frigate along with a json file that contains
+    # data related to the tracked object. This works by telling ffmpeg to write video segments to /cache
+    # from the video stream without re-encoding. Clips are then created by using ffmpeg to merge segments
+    # without re-encoding. The segments saved are unaltered from what frigate receives to avoid re-encoding.
+    # They do not contain bounding boxes. 30 seconds of video is added to the start of the clip. These are
+    # optimized to capture "false_positive" examples for improving frigate.
+    #
+    # NOTE: This will only work for camera feeds that can be copied into the mp4 container format without
+    # encoding such as h264. I do not expect this to work for mjpeg streams, and it may not work for many other
+    # types of streams.
+    #
+    # WARNING: Videos in /cache are retained until there are no ongoing events. If you are tracking cars or
+    # other objects for long periods of time, the cache will continue to grow indefinitely.
     ################
-    fps: 5
+    save_clips:
+      enabled: False
+      #########
+      # Number of seconds before the event to include in the clips
+      #########
+      pre_capture: 30
 
     ################
     # Configuration for the snapshots in the debug view and mqtt
     ################
     snapshots:
       show_timestamp: True
+      draw_zones: False
 
     ################
     # Camera level object config. This config is merged with the global config above.
@@ -133,4 +184,4 @@ cameras:
         person:
           min_area: 5000
           max_area: 100000
-          threshold: 0.5
+          threshold: 0.8

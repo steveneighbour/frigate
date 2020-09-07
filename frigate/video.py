@@ -12,6 +12,7 @@ import numpy as np
 import copy
 import itertools
 import json
+import base64
 from collections import defaultdict
 from frigate.util import draw_box_with_label, area, calculate_region, clipped, intersection_over_union, intersection, EventsPerSecond, listen, PlasmaManager
 from frigate.objects import ObjectTracker
@@ -115,7 +116,7 @@ def start_or_restart_ffmpeg(ffmpeg_cmd, frame_size, ffmpeg_process=None):
     return process
 
 class CameraCapture(threading.Thread):
-    def __init__(self, name, ffmpeg_process, frame_shape, frame_queue, take_frame, fps, detection_frame):
+    def __init__(self, name, ffmpeg_process, frame_shape, frame_queue, take_frame, fps, detection_frame, stop_event):
         threading.Thread.__init__(self)
         self.name = name
         self.frame_shape = frame_shape
@@ -124,16 +125,21 @@ class CameraCapture(threading.Thread):
         self.take_frame = take_frame
         self.fps = fps
         self.skipped_fps = EventsPerSecond()
-        self.plasma_client = PlasmaManager()
+        self.plasma_client = PlasmaManager(stop_event)
         self.ffmpeg_process = ffmpeg_process
         self.current_frame = 0
         self.last_frame = 0
         self.detection_frame = detection_frame
+        self.stop_event = stop_event
 
     def run(self):
         frame_num = 0
         self.skipped_fps.start()
         while True:
+            if self.stop_event.is_set():
+                print(f"{self.name}: stop event set. exiting capture thread...")
+                break
+
             if self.ffmpeg_process.poll() != None:
                 print(f"{self.name}: ffmpeg process is not running. exiting capture thread...")
                 break
@@ -189,7 +195,12 @@ def track_camera(name, config, global_objects_config, frame_queue, frame_shape, 
 
     # load in the mask for object detection
     if 'mask' in config:
-        mask = cv2.imread("/config/{}".format(config['mask']), cv2.IMREAD_GRAYSCALE)
+        if config['mask'].startswith('base64,'):
+            img = base64.b64decode(config['mask'][7:]) 
+            npimg = np.fromstring(img, dtype=np.uint8)
+            mask = cv2.imdecode(npimg, cv2.IMREAD_GRAYSCALE)
+        else:
+            mask = cv2.imread("/config/{}".format(config['mask']), cv2.IMREAD_GRAYSCALE)
     else:
         mask = None
 
@@ -236,7 +247,7 @@ def track_camera(name, config, global_objects_config, frame_queue, frame_shape, 
         for obj in tracked_objects:
             x_min, y_min, x_max, y_max = obj['box']
             for m_index, motion_box in enumerate(motion_boxes):
-                if area(intersection(obj['box'], motion_box))/area(motion_box) > .5:
+                if intersection_over_union(motion_box, obj['box']) > .2:
                     used_motion_boxes.append(m_index)
                     x_min = min(obj['box'][0], motion_box[0])
                     y_min = min(obj['box'][1], motion_box[1])

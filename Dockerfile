@@ -13,7 +13,8 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     tzdata \
     software-properties-common \
     build-essential \
-    gnupg wget curl unzip \
+    gnupg wget unzip tzdata \
+    # libcap-dev \
     && add-apt-repository ppa:deadsnakes/ppa -y \
     #&& add-apt-repository ppa:savoury1/ffmpeg4 -y \
     #&& add-apt-repository ppa:savoury1/graphics -y \
@@ -34,6 +35,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         numpy \
         imutils \
         scipy \
+        psutil \
     && python3.7 -m pip install -U \
         Flask \
         paho-mqtt \
@@ -41,8 +43,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         matplotlib \
         pyarrow \
         requests \
-        pathlib \
-        honeycomb-beeline \
+        pathlib
     && echo "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main" > /etc/apt/sources.list.d/coral-edgetpu.list \
     && wget -q -O - https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && apt -qq update \
@@ -60,6 +61,9 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
 RUN wget -q https://github.com/google-coral/edgetpu/raw/master/test_data/ssd_mobilenet_v2_coco_quant_postprocess_edgetpu.tflite -O /edgetpu_model.tflite --trust-server-names
 RUN wget -q https://dl.google.com/coral/canned_models/coco_labels.txt -O /labelmap.txt --trust-server-names
 RUN wget -q https://github.com/google-coral/edgetpu/raw/master/test_data/ssd_mobilenet_v2_coco_quant_postprocess.tflite -O /cpu_model.tflite 
+
+
+RUN mkdir /cache /clips
 
 WORKDIR /opt/frigate/
 ADD frigate frigate/

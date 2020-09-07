@@ -17,6 +17,7 @@ import paho.mqtt.client as mqtt
 
 from frigate.video import track_camera, get_ffmpeg_input, get_frame_shape, CameraCapture, start_or_restart_ffmpeg
 from frigate.object_processing import TrackedObjectProcessor
+from frigate.events import EventProcessor
 from frigate.util import EventsPerSecond
 from frigate.edgetpu import EdgeTPUProcess
 
@@ -50,7 +51,6 @@ FFMPEG_DEFAULT_CONFIG = {
          '-flags', 'low_delay',
          '-strict', 'experimental',
          '-fflags', '+genpts+discardcorrupt',
-         '-vsync', 'drop',
          '-rtsp_transport', 'tcp',
          '-stimeout', '5000000',
          '-use_wallclock_as_timestamps', '1']),
@@ -74,19 +74,24 @@ def start_plasma_store():
     return plasma_process
 
 class CameraWatchdog(threading.Thread):
-    def __init__(self, camera_processes, config, tflite_process, tracked_objects_queue, plasma_process):
+    def __init__(self, camera_processes, config, tflite_process, tracked_objects_queue, plasma_process, stop_event):
         threading.Thread.__init__(self)
         self.camera_processes = camera_processes
         self.config = config
         self.tflite_process = tflite_process
         self.tracked_objects_queue = tracked_objects_queue
         self.plasma_process = plasma_process
+        self.stop_event = stop_event
 
     def run(self):
         time.sleep(10)
         while True:
             # wait a bit before checking
             time.sleep(10)
+
+            if self.stop_event.is_set():
+                print(f"Exiting watchdog...")
+                break
 
             now = datetime.datetime.now().timestamp()
             
@@ -128,7 +133,7 @@ class CameraWatchdog(threading.Thread):
                     frame_size = frame_shape[0] * frame_shape[1] * frame_shape[2]
                     ffmpeg_process = start_or_restart_ffmpeg(camera_process['ffmpeg_cmd'], frame_size)
                     camera_capture = CameraCapture(name, ffmpeg_process, frame_shape, camera_process['frame_queue'], 
-                        camera_process['take_frame'], camera_process['camera_fps'], camera_process['detection_frame'])
+                        camera_process['take_frame'], camera_process['camera_fps'], camera_process['detection_frame'], self.stop_event)
                     camera_capture.start()
                     camera_process['ffmpeg_process'] = ffmpeg_process
                     camera_process['capture_thread'] = camera_capture
@@ -145,6 +150,7 @@ class CameraWatchdog(threading.Thread):
                         ffmpeg_process.communicate()
 
 def main():
+    stop_event = threading.Event()
     # connect to mqtt and setup last will
     def on_connect(client, userdata, flags, rc):
         print("On connect called")
@@ -174,11 +180,15 @@ def main():
     ##
     for name, config in CONFIG['cameras'].items():
         config['snapshots'] = {
-            'show_timestamp': config.get('snapshots', {}).get('show_timestamp', True)
+            'show_timestamp': config.get('snapshots', {}).get('show_timestamp', True),
+            'draw_zones': config.get('snapshots', {}).get('draw_zones', False)
         }
 
     # Queue for cameras to push tracked objects to
-    tracked_objects_queue = mp.SimpleQueue()
+    tracked_objects_queue = mp.Queue()
+
+    # Queue for clip processing
+    event_queue = mp.Queue()
     
     # Start the shared tflite process
     tflite_process = EdgeTPUProcess()
@@ -193,6 +203,25 @@ def main():
         ffmpeg_hwaccel_args = ffmpeg.get('hwaccel_args', FFMPEG_DEFAULT_CONFIG['hwaccel_args'])
         ffmpeg_input_args = ffmpeg.get('input_args', FFMPEG_DEFAULT_CONFIG['input_args'])
         ffmpeg_output_args = ffmpeg.get('output_args', FFMPEG_DEFAULT_CONFIG['output_args'])
+        if config.get('save_clips', {}).get('enabled', False):
+            ffmpeg_output_args = [
+                "-f",
+                "segment",
+                "-segment_time",
+                "10",
+                "-segment_format",
+                "mp4",
+                "-reset_timestamps",
+                "1",
+                "-strftime",
+                "1",
+                "-c",
+                "copy",
+                "-an",
+                "-map",
+                "0",
+                f"/cache/{name}-%Y%m%d%H%M%S.mp4"
+            ] + ffmpeg_output_args
         ffmpeg_cmd = (['ffmpeg'] +
                 ffmpeg_global_args +
                 ffmpeg_hwaccel_args +
@@ -212,10 +241,10 @@ def main():
         detection_frame = mp.Value('d', 0.0)
 
         ffmpeg_process = start_or_restart_ffmpeg(ffmpeg_cmd, frame_size)
-        frame_queue = mp.SimpleQueue()
+        frame_queue = mp.Queue()
         camera_fps = EventsPerSecond()
         camera_fps.start()
-        camera_capture = CameraCapture(name, ffmpeg_process, frame_shape, frame_queue, take_frame, camera_fps, detection_frame)
+        camera_capture = CameraCapture(name, ffmpeg_process, frame_shape, frame_queue, take_frame, camera_fps, detection_frame, stop_event)
         camera_capture.start()
 
         camera_processes[name] = {
@@ -242,12 +271,31 @@ def main():
     for name, camera_process in camera_processes.items():
         camera_process['process'].start()
         print(f"Camera_process started for {name}: {camera_process['process'].pid}")
+
+    event_processor = EventProcessor(CONFIG['cameras'], camera_processes, '/cache', '/clips', event_queue, stop_event)
+    event_processor.start()
     
-    object_processor = TrackedObjectProcessor(CONFIG['cameras'], client, MQTT_TOPIC_PREFIX, tracked_objects_queue)
+    object_processor = TrackedObjectProcessor(CONFIG['cameras'], CONFIG.get('zones', {}), client, MQTT_TOPIC_PREFIX, tracked_objects_queue, event_queue,stop_event)
     object_processor.start()
     
-    camera_watchdog = CameraWatchdog(camera_processes, CONFIG['cameras'], tflite_process, tracked_objects_queue, plasma_process)
+    camera_watchdog = CameraWatchdog(camera_processes, CONFIG['cameras'], tflite_process, tracked_objects_queue, plasma_process, stop_event)
     camera_watchdog.start()
+
+    def receiveSignal(signalNumber, frame):
+        print('Received:', signalNumber)
+        stop_event.set()
+        event_processor.join()
+        object_processor.join()
+        camera_watchdog.join()
+        for name, camera_process in camera_processes.items():
+            camera_process['capture_thread'].join()
+        rc = camera_watchdog.plasma_process.poll()
+        if rc == None:
+            camera_watchdog.plasma_process.terminate()
+        sys.exit()
+    
+    signal.signal(signal.SIGTERM, receiveSignal)
+    signal.signal(signal.SIGINT, receiveSignal)
 
     # create a flask app that encodes frames a mjpeg on demand
     beeline.init(writekey='d0cfd03e01d85a4cdf9ceb9af7fbd082', dataset='frigate', service_name='frigate')
@@ -321,6 +369,11 @@ def main():
             best_frame = object_processor.get_best(camera_name, label)
             if best_frame is None:
                 best_frame = np.zeros((720,1280,3), np.uint8)
+
+            height = int(request.args.get('h', str(best_frame.shape[0])))
+            width = int(height*best_frame.shape[1]/best_frame.shape[0])
+
+            best_frame = cv2.resize(best_frame, dsize=(width, height), interpolation=cv2.INTER_AREA)
             best_frame = cv2.cvtColor(best_frame, cv2.COLOR_RGB2BGR)
             ret, jpg = cv2.imencode('.jpg', best_frame)
             response = make_response(jpg.tobytes())
@@ -339,7 +392,28 @@ def main():
                             mimetype='multipart/x-mixed-replace; boundary=frame')
         else:
             return "Camera named {} not found".format(camera_name), 404
+    
+    @app.route('/<camera_name>/latest.jpg')
+    def latest_frame(camera_name):
+        if camera_name in CONFIG['cameras']:
+            # max out at specified FPS
+            frame = object_processor.get_current_frame(camera_name)
+            if frame is None:
+                frame = np.zeros((720,1280,3), np.uint8)
 
+            height = int(request.args.get('h', str(frame.shape[0])))
+            width = int(height*frame.shape[1]/frame.shape[0])
+
+            frame = cv2.resize(frame, dsize=(width, height), interpolation=cv2.INTER_AREA)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+            ret, jpg = cv2.imencode('.jpg', frame)
+            response = make_response(jpg.tobytes())
+            response.headers['Content-Type'] = 'image/jpg'
+            return response
+        else:
+            return "Camera named {} not found".format(camera_name), 404
+            
     def imagestream(camera_name, fps, height):
         while True:
             # max out at specified FPS
