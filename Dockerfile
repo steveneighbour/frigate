@@ -29,6 +29,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
         # VAAPI drivers for Intel hardware accel
         libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
+    && python3.7 -m pip install --upgrade pip \
     && python3.7 -m pip install -U \
         opencv-python-headless \
         # python-prctl \
