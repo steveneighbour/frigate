@@ -20,9 +20,6 @@ from frigate.object_processing import TrackedObjectProcessor
 from frigate.events import EventProcessor
 from frigate.util import EventsPerSecond
 from frigate.edgetpu import EdgeTPUProcess
-
-import beeline
-from beeline.middleware.flask import HoneyMiddleware
     
 FRIGATE_VARS = {k: v for k, v in os.environ.items() if k.startswith('FRIGATE_')}
 
@@ -298,12 +295,7 @@ def main():
     signal.signal(signal.SIGINT, receiveSignal)
 
     # create a flask app that encodes frames a mjpeg on demand
-    beeline.init(writekey='d0cfd03e01d85a4cdf9ceb9af7fbd082', dataset='frigate', service_name='frigate')
     app = Flask(__name__)
-    # db_events defaults to True, set to False if not using our db middleware with Flask-SQLAlchemy
-    HoneyMiddleware(app, db_events=False)
-    log = logging.getLogger('werkzeug')
-    log.setLevel(logging.ERROR)
 
     @app.route('/')
     def ishealthy():
