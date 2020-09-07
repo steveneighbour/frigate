@@ -21,13 +21,13 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
     #&& add-apt-repository ppa:savoury1/multimedia -y \
     #&& add-apt-repository ppa:ubuntu-toolchain-r/test -y \
     && add-apt-repository ppa:jonathonf/ffmpeg-4 -y \
-    && apt-get install -fy && apt-get -yqq install --no-install-recommends \
-    python3.7 \
-    python3.7-dev \
-    python3-pip \
-    ffmpeg \
-    # VAAPI drivers for Intel hardware accel
-    libva-drm2 libva2 i965-va-driver vainfo \
+    && apt -qq install --no-install-recommends -y \
+        python3.7 \
+        python3.7-dev \
+        python3-pip \
+        ffmpeg \
+        # VAAPI drivers for Intel hardware accel
+        libva-drm2 libva2 i965-va-driver vainfo \
     && python3.7 -m pip install -U wheel setuptools \
     && python3.7 -m pip install -U \
         opencv-python-headless \
