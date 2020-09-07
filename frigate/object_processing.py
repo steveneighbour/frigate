@@ -140,7 +140,7 @@ class TrackedObjectProcessor(threading.Thread):
             for id in removed_ids:
                 # publish events to mqtt
                 tracked_objects[id]['end_time'] = frame_time
-                self.client.publish(f"{self.topic_prefix}/{camera}/events/end", json.dumps(tracked_objects[id]), retain=False)
+                #self.client.publish(f"{self.topic_prefix}/{camera}/events/end", json.dumps(tracked_objects[id]), retain=False)
                 self.event_queue.put(('end', camera, tracked_objects[id]))
                 del tracked_objects[id]
 
